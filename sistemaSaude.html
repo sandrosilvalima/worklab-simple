@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Saúde</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema Saúde - Interface</h1>
+
+        <!-- Formulário para cadastrar paciente -->
+        <form id="form-cadastrar-paciente">
+            <h2>Cadastrar Paciente</h2>
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" name="nome" required>
+
+            <label for="sexo">Sexo:</label>
+            <select id="sexo" name="sexo" required>
+                <option value="M">Masculino</option>
+                <option value="F">Feminino</option>
+            </select>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email">
+
+            <label for="celular">Celular:</label>
+            <input type="text" id="celular" name="celular">
+
+            <button type="submit">Cadastrar Paciente</button>
+        </form>
+
+        <!-- Formulário para cadastrar exame -->
+        <form id="form-cadastrar-exame">
+            <h2>Cadastrar Exame</h2>
+            <label for="codigo">Código:</label>
+            <input type="text" id="codigo" name="codigo" required>
+
+            <label for="descricao">Descrição:</label>
+            <input type="text" id="descricao" name="descricao" required>
+
+            <label for="valor">Valor:</label>
+            <input type="number" step="0.01" id="valor" name="valor" required>
+
+            <button type="submit">Cadastrar Exame</button>
+        </form>
+
+        <!-- Formulário para vincular exames -->
+        <form id="form-vincular-exames">
+            <h2>Vincular Exames ao Paciente</h2>
+            <label for="paciente-id">ID do Paciente:</label>
+            <input type="number" id="paciente-id" name="paciente-id" required>
+
+            <label for="exames">Códigos dos Exames (separados por vírgula):</label>
+            <input type="text" id="exames" name="exames" required>
+
+            <button type="submit">Vincular Exames</button>
+        </form>
+
+        <!-- Formulário para gerar relatório -->
+        <form id="form-relatorio">
+            <h2>Gerar Relatório do Paciente</h2>
+            <label for="relatorio-id">ID do Paciente:</label>
+            <input type="number" id="relatorio-id" name="relatorio-id" required>
+
+            <button type="submit">Gerar Relatório</button>
+        </form>
+
+        <div id="response" class="response"></div>
+    </div>
+
+    <script>
+        const apiBaseUrl = "http://localhost:8080";
+        const responseDiv = document.getElementById("response");
+
+        // Função para exibir respostas
+        function showResponse(data) {
+            responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // Cadastrar paciente
+        document.getElementById("form-cadastrar-paciente").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const nome = document.getElementById("nome").value;
+            const sexo = document.getElementById("sexo").value;
+            const email = document.getElementById("email").value;
+            const celular = document.getElementById("celular").value;
+
+            const response = await fetch(`${apiBaseUrl}/pacientes`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome_completo: nome, sexo, email, celular })
+            });
+
+            const data = await response.json();
+            showResponse(data);
+        });
+
+        // Cadastrar exame
+        document.getElementById("form-cadastrar-exame").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const codigo = document.getElementById("codigo").value;
+            const descricao = document.getElementById("descricao").value;
+            const valor = document.getElementById("valor").value;
+
+            const response = await fetch(`${apiBaseUrl}/exames`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ codigo, descricao, valor })
+            });
+
+            const data = await response.json();
+            showResponse(data);
+        });
+
+        // Vincular exames
+        document.getElementById("form-vincular-exames").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const pacienteId = document.getElementById("paciente-id").value;
+            const exames = document.getElementById("exames").value.split(",").map((e) => e.trim());
+
+            const response = await fetch(`${apiBaseUrl}/pacientes/${pacienteId}/exames`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ exames })
+            });
+
+            const data = await response.json();
+            showResponse(data);
+        });
+
+        // Gerar relatório
+        document.getElementById("form-relatorio").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const relatorioId = document.getElementById("relatorio-id").value;
+
+            const response = await fetch(`${apiBaseUrl}/pacientes/${relatorioId}/relatorio`);
+
+            const data = await response.json();
+            showResponse(data);
+        });
+    </script>
+</body>
+</html>
